@@ -133,7 +133,7 @@ function install_nginx(){
     sleep 3s
     make >/dev/null 2>&1
     make install >/dev/null 2>&1
-    
+
 cat > /etc/nginx/conf/nginx.conf <<-EOF
 user  root;
 worker_processes  1;
@@ -164,17 +164,17 @@ EOF
         --fullchain-file /etc/nginx/ssl/fullchain.cer
     newpath=$(cat /dev/urandom | head -1 | md5sum | head -c 4)
 cat > /etc/nginx/conf.d/default.conf<<-EOF
-server { 
+server {
     listen       80;
     server_name  $your_domain;
-    rewrite ^(.*)$  https://\$host\$1 permanent; 
+    rewrite ^(.*)$  https://\$host\$1 permanent;
 }
 server {
     listen 443 ssl http2;
     server_name $your_domain;
     root /etc/nginx/html;
     index index.php index.html;
-    ssl_certificate /etc/nginx/ssl/fullchain.cer; 
+    ssl_certificate /etc/nginx/ssl/fullchain.cer;
     ssl_certificate_key /etc/nginx/ssl/$your_domain.key;
     #TLS 版本控制
     ssl_protocols   TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
@@ -188,7 +188,7 @@ server {
     #access_log /var/log/nginx/access.log combined;
     location /$newpath {
         proxy_redirect off;
-        proxy_pass http://127.0.0.1:11234; 
+        proxy_pass http://127.0.0.1:11234;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -202,16 +202,16 @@ EOF
 cat > /etc/systemd/system/nginx.service<<-EOF
 [Unit]
 Description=nginx service
-After=network.target 
-   
-[Service] 
-Type=forking 
+After=network.target
+
+[Service]
+Type=forking
 ExecStart=/etc/nginx/sbin/nginx
 ExecReload=/etc/nginx/sbin/nginx -s reload
 ExecStop=/etc/nginx/sbin/nginx -s quit
-PrivateTmp=true 
-   
-[Install] 
+PrivateTmp=true
+
+[Install]
 WantedBy=multi-user.target
 EOF
 chmod 777 /etc/systemd/system/nginx.service
@@ -251,21 +251,21 @@ function install(){
 }
 #安装v2ray
 function install_v2ray(){
-    
-    bash <(curl -L -s https://install.direct/go.sh)  
-    cd /etc/v2ray/
+
+    bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
+    cd /usr/local/etc/v2ray/
     rm -f config.json
-    wget https://raw.githubusercontent.com/atrandys/v2ray-ws-tls/master/config.json >/dev/null 2>&1
+    wget https://raw.githubusercontent.com/snddman/v2ray-ws-tls/master/config.json >/dev/null 2>&1
     v2uuid=$(cat /proc/sys/kernel/random/uuid)
     sed -i "s/aaaa/$v2uuid/;" config.json
     sed -i "s/mypath/$newpath/;" config.json
     cd /etc/nginx/html
     rm -f ./*
-    wget https://github.com/atrandys/v2ray-ws-tls/raw/master/web.zip >/dev/null 2>&1
+    wget https://github.com/snddman/v2ray-ws-tls/raw/master/web.zip >/dev/null 2>&1
     unzip web.zip >/dev/null 2>&1
     systemctl restart v2ray.service
-    systemctl restart nginx.service    
-    
+    systemctl restart nginx.service
+
 cat > /etc/v2ray/myconfig.json<<-EOF
 {
 ===========配置参数=============
@@ -293,7 +293,7 @@ green "传输协议：ws"
 green "别名：myws"
 green "路径：${newpath}"
 green "底层传输：tls"
-green 
+green
 }
 
 function remove_v2ray(){
@@ -301,13 +301,13 @@ function remove_v2ray(){
     /etc/nginx/sbin/nginx -s stop
     systemctl stop v2ray.service
     systemctl disable v2ray.service
-    
+
     rm -rf /usr/bin/v2ray /etc/v2ray
     rm -rf /etc/v2ray
     rm -rf /etc/nginx
-    
+
     green "nginx、v2ray已删除"
-    
+
 }
 
 function start_menu(){
@@ -337,7 +337,7 @@ function start_menu(){
     systemctl restart v2ray
     ;;
     3)
-    remove_v2ray 
+    remove_v2ray
     ;;
     0)
     exit 1
